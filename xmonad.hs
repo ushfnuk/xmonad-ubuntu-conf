@@ -34,6 +34,7 @@ import XMonad.Hooks.ICCCMFocus
 import qualified XMonad.StackSet as W
 import qualified Data.Map as M
 import Data.Ratio ((%))
+import Control.Applicative ((<$>))
 
 {-
   Xmonad configuration variables. These settings control some of the
@@ -44,8 +45,8 @@ myModMask            = mod4Mask       -- changes the mod key to "super"
 myFocusedBorderColor = "#ff0000"      -- color of focused border
 myNormalBorderColor  = "#cccccc"      -- color of inactive border
 myBorderWidth        = 1              -- width of border around windows
-myTerminal           = "terminator"   -- which terminal software to use
-myIMRosterTitle      = "Buddy List"   -- title of roster on IM workspace
+myTerminal           = "xfce4-terminal --hide-borders --working-directory=."   -- which terminal software to use
+myIMRosterTitle      = "Список собеседников"   -- title of roster on IM workspace
                                       -- use "Buddy List" for Pidgin, but
                                       -- "Contact List" for Empathy
 
@@ -158,7 +159,8 @@ defaultLayouts = smartBorders(avoidStruts(
 -- identified using the myIMRosterTitle variable, and by default is
 -- configured for Pidgin, so if you're using something else you
 -- will want to modify that variable.
-chatLayout = avoidStruts(withIM (1%7) (Title myIMRosterTitle) Grid)
+chatLayout = avoidStruts(gridIM (1%7) (Title myIMRosterTitle))
+-- chatLayout = smartBorders(avoidStruts(Grid))
 
 -- The GIMP layout uses the ThreeColMid layout. The traditional GIMP
 -- floating panels approach is a bit of a challenge to handle with xmonad;
@@ -208,8 +210,8 @@ myKeyBindings =
     , ((myModMask, xK_p), spawn "synapse")
     , ((myModMask, xK_u), focusUrgent)
     , ((0, 0x1008FF12), spawn "amixer -q set Master toggle")
-    , ((0, 0x1008FF11), spawn "amixer -q set Master 10%-")
-    , ((0, 0x1008FF13), spawn "amixer -q set Master 10%+")
+    , ((0, 0x1008FF11), spawn "amixer -q set Master 5%-")
+    , ((0, 0x1008FF13), spawn "amixer -q set Master 5%+")
   ]
 
 
@@ -258,16 +260,15 @@ myKeyBindings =
 
 myManagementHooks :: [ManageHook]
 myManagementHooks = [
-  resource =? "synapse" --> doIgnore
-  , resource =? "stalonetray" --> doIgnore
+  appName =? "synapse" --> doIgnore
+  , appName =? "stalonetray" --> doIgnore
+  , appName =? "xchat" --> doShift "3:Mail"
   , className =? "rdesktop" --> doFloat
-  , (className =? "Komodo IDE") --> doF (W.shift "5:Dev")
-  , (className =? "Komodo IDE" <&&> resource =? "Komodo_find2") --> doFloat
-  , (className =? "Komodo IDE" <&&> resource =? "Komodo_gotofile") --> doFloat
-  , (className =? "Komodo IDE" <&&> resource =? "Toplevel") --> doFloat
-  , (className =? "Empathy") --> doF (W.shift "7:Chat")
-  , (className =? "Pidgin") --> doF (W.shift "7:Chat")
-  , (className =? "Gimp-2.8") --> doF (W.shift "9:Pix")
+  -- , (className =? "Firefox" <&&> not <$> appName =? "*|MC:SUBJECT|* - Mozilla Firefox") --> doShift "6:Web"
+  , (className =? "Empathy") --> doShift "7:Chat"
+  , (className =? "Pidgin") --> doShift "7:Chat"
+  , (className =? "Wine" <&&> appName =? "Viber.exe") --> doShift "7:Chat"
+  , (className =? "Gimp-2.6") --> doShift "9:Pix"
   ]
 
 
@@ -361,5 +362,6 @@ main = do
       , ppUrgent = xmobarColor myUrgentWSColor ""
         . wrap myUrgentWSLeft myUrgentWSRight
     }
+
   }
     `additionalKeys` myKeys

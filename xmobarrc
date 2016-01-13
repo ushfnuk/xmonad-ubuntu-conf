@@ -13,7 +13,7 @@
 Config { 
   -- Set font and default foreground/background colors. Note that
   -- the height of xmobar is controlled by the font you use.
-  font = "xft:Ubuntu Mono-14",
+  font = "xft:Ubuntu Mono-12",
   bgColor = "black",
   fgColor = "grey",
 
@@ -29,9 +29,14 @@ Config {
   commands = [ 
     -- Gather and format CPU usage information. 
     -- If it's above 50%, we consider it high usage and make it red.  
-    Run Cpu [
+    Run MultiCpu [
+      "-t", "Cpu: <total0>%|<total1>%",
       "-H","50",
       "--high","red"
+    ] 10,
+
+    Run Network "wlan1" [
+      "-t", "<dev>: <rx>|<tx>"
     ] 10,
 
     -- Gather and format memory usage information
@@ -40,21 +45,22 @@ Config {
     ] 10,
 
     -- Date formatting
-    Run Date "%a %b %_d %l:%M" "date" 10,
+    Run Date "%a %b %_d %H:%M" "date" 10,
 
     -- Battery information. This is likely to require some customization
     -- based upon your specific hardware. Or, for a desktop you may want
     -- to just remove this section entirely.
-    Run Battery [
+    Run BatteryP ["BAT0"] [
       "-t", "<acstatus>: <left>%", 
       "--", 
       "-c", "charge_full",
       "-O", "AC",
       "-o", "Bat",
       "-h", "green",
-      "-l", "red"
+      "-l", "red",
+      "-f", "AC0/online"
     ] 10,
-    
+
     -- To get volume information, we run a custom bash script.
     -- This is because the built-in volume support in xmobar is disabled
     -- in Debian and derivatives like Ubuntu. 
@@ -74,5 +80,5 @@ Config {
 
    -- Overall template for the layout of the xmobar contents. Note that
    -- space is significant and can be used to add padding.
-   template = "%StdinReader% }{ %battery% | %cpu% | %memory% | Vol: %myvolume%    <fc=#e6744c>%date%</fc>     "
+   template = "%StdinReader% }{ %battery% | %multicpu% | %memory% | %wlan1% | Vol: %myvolume%    <fc=#e6744c>%date%</fc>     "
 }
